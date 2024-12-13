@@ -291,9 +291,7 @@ jobs:
          - Other libraries aligned with these changes to maintain compatibility across the dependency tree.
        - **Reasoning:** Prevents future incompatibilities caused by upstream updates, ensuring the application remains stable during dependency upgrades.
 
-  - **Outcome:** The issue persists despite multiple dependency adjustments, rebuilds, and redeployments. Further investigation is needed.
-
-
+  - **Outcome:** The issue persists despite multiple dependency adjustments, rebuilds, and redeployments. 
 ### Makeline-Service Not Functioning
 
 - **Description:** The `makeline-service` is not processing orders from the queue even though both `virtual-customer` and `virtual-worker` are running. No information was being saved into MongoDB.
