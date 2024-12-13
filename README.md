@@ -1,4 +1,4 @@
-# BestBuyStore
+# BestBuyStore App Documentation
 
 **BestBuyStore** is a modern microservices-based retail platform designed to run in a Kubernetes cluster. It simulates the end-to-end operations of an e-commerce application, demonstrating how cloud-native technologies can support complex workflows in a scalable and efficient manner. The platform focuses on four key functionalities:
 
