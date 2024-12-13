@@ -238,10 +238,11 @@ jobs:
   TypeError: AsyncClient.__init__() got an unexpected keyword argument 'proxies'
   ```
 - **Screenshots:**
+  
   ![AI-Service Error Screenshot](ai-service-pod-not-ready.png)
   ![AI-Service Error Screenshot](ai-service-log1.png)
-![AI-Service Error Screenshot](ai-service-log2.png)
-![AI-Service Error Screenshot](ai-service-log3.png)
+  ![AI-Service Error Screenshot](ai-service-log2.png)
+  ![AI-Service Error Screenshot](ai-service-log3.png)
 - **Reasoning:** My reasoning is that this issue arises from a deprecated method in the `httpx` library being used in the automated OpenAI SDK code. Specific versions of `httpx` and `openai` need to be compatible with the `ai-service` codebase. Changes in `httpx` versions have affected how proxies are handled, resulting in this error.
 - **Actions Taken:**
   1. Updated `requirements.txt`:
