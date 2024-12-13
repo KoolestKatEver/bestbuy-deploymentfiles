@@ -212,17 +212,7 @@ jobs:
         run: |
           echo "$KUBE_CONFIG_DATA" | base64 -d > kubeconfig
           export KUBECONFIG=kubeconfig
-          kubectl set image deployment/$DEPLOYMENT_NAME $CONTAINER_NAME=$DOCKER_USERNAME/$DOCKER_IMAGE_NAME:latest
-          kubectl rollout restart deployment/$DEPLOYMENT_NAME
-      - name: Verify Deployment
-        env:
-          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
-          DEPLOYMENT_NAME: ${{ vars.DEPLOYMENT_NAME }}
-        run: |
-          echo "$KUBE_CONFIG_DATA" | base64 -d > kubeconfig
-          export KUBECONFIG=kubeconfig
-          kubectl rollout status deployment/$DEPLOYMENT_NAME
-          kubectl get pods -o wide
+          kubectl set image deployment/$DEPLOYMENT_NAME $CONTAINER_NAME=$DOCKER_USERNAME/$ -o wide
 ```
 
 
@@ -237,13 +227,11 @@ jobs:
   TypeError: AsyncClient.__init__() got an unexpected keyword argument 'proxies'
   ```
 - **Screenshots:**
-  
   ![AI-Service Error Screenshot](ai-service-pod-not-ready.png)
   ![AI-Service Error Screenshot](ai-service-log1.png)
-  ![AI-Service Error Screenshot](ai-service-log2.png)
-  ![AI-Service Error Screenshot](ai-service-log3.png)
+![AI-Service Error Screenshot](ai-service-log2.png)
+![AI-Service Error Screenshot](ai-service-log3.png)
 - **Reasoning:** My reasoning is that this issue arises from a deprecated method in the `httpx` library being used in the automated OpenAI SDK code. Specific versions of `httpx` and `openai` need to be compatible with the `ai-service` codebase. Changes in `httpx` versions have affected how proxies are handled, resulting in this error.
-
 - **Actions Taken:**
   1. Updated `requirements.txt`:
      - **Reasoning for Updates:**
@@ -288,13 +276,23 @@ jobs:
 
   4. Additional Research on the Issue:
      - Consulted the [OpenAI Community thread](https://community.openai.com/t/typeerror-asyncclient-init-got-an-unexpected-keyword-argument-proxies/1040287) discussion for this error.
-     - Implemented fixes based on suggestions:
-       - Set `httpx==0.27.2` initially to test against a stable version.
-       - Used `pip install --upgrade "httpx<0.28"` to avoid potential conflicts.
-       - Upgraded the OpenAI Python SDK to ensure compatibility.
-       - Even though this method is said to have worked for many people in the forum, it did not resolve the error for me.
+     
+     - **Pinned httpx Version:**
+       - Set `httpx==0.27.2` in `requirements.txt` to use the last version supporting the `proxies` argument.
+       - **Reasoning:** Ensures compatibility with existing code dependent on the `proxies` parameter, preventing breaking changes caused by newer `httpx` versions.
+
+     - **Upgraded OpenAI Python SDK:**
+       - Updated the OpenAI library to version `1.55.3`, which addresses compatibility with `httpx` 0.28.0.
+       - **Reasoning:** Aligns with upstream fixes in the OpenAI Python SDK that accommodate the removed `proxies` argument in `httpx`.
+
+     - **Modified Dependency Constraints:**
+       - Adjusted `requirements.txt` to specify compatible versions of `httpx` and related dependencies:
+         - `httpx>=0.23.0,<0.28`
+         - Other libraries aligned with these changes to maintain compatibility across the dependency tree.
+       - **Reasoning:** Prevents future incompatibilities caused by upstream updates, ensuring the application remains stable during dependency upgrades.
 
   - **Outcome:** The issue persists despite multiple dependency adjustments, rebuilds, and redeployments. Further investigation is needed.
+
 
 ### Makeline-Service Not Functioning
 
