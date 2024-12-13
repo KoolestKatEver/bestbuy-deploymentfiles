@@ -100,12 +100,32 @@ The platform is built with a polyglot microservices architecture, where differen
 
 
 ---
-
 ## Automating with GitHub Actions
-The following workflow file on GitHub Actions to automate the build, test, and deployment pipeline, deployments were successful. 
 
-```bash
+The following workflow file on GitHub Actions automates the build, test, and deployment pipeline. Successful deployments are confirmed by the steps below:
 
+### Set Up Secrets and Variables:
+
+1. **Set Up Secrets:**
+   - Go to `Settings > Secrets and variables > Actions` in each forked repository.
+   - Add the following repository secrets:
+     - `DOCKER_USERNAME`: Your Docker Hub username.
+     - `DOCKER_PASSWORD`: Your Docker Hub password.
+     - `KUBE_CONFIG_DATA`: Base64-encoded content of your Kubernetes configuration file (kubeconfig). This is used for authentication with your Kubernetes cluster.
+   - Run the following commands to get `KUBE_CONFIG_DATA` after connecting to your AKS cluster:
+     ```bash
+     cat ~/.kube/config | base64 -w 0 > kube_config_base64.txt
+     ```
+     Use the content of this file as the value for the `KUBE_CONFIG_DATA` secret in GitHub.
+
+2. **Set Up Environment Variables (Repository Variables):**
+   - Go to `Settings > Secrets and variables > Actions` in each forked repository.
+   - Add the following repository variables:
+     - `DOCKER_IMAGE_NAME`: The name of the Docker image to be built, tagged, and pushed (e.g., `store-front-l9`).
+     - `DEPLOYMENT_NAME`: The name of the Kubernetes deployment to update (e.g., `store-front`).
+     - `CONTAINER_NAME`: The name of the container within the Kubernetes deployment to update (e.g., `store-front`).
+
+```yaml
 name: Build, Test, and Deploy
 
 on:
@@ -115,7 +135,6 @@ on:
 
 jobs:
   # Step 1: Build Job (Unit Test and Build Docker Image)
-  # Build a packaged version of the application that can run in any Docker environment.
   Build:
     runs-on: ubuntu-latest
 
@@ -126,7 +145,6 @@ jobs:
       - name: Install Dependencies
         run: echo "Simulating Install Dependencies... Install Dependencies completed successfully!"
 
-      #Test individual units or components of the code in isolation, such as functions, or classes.
       - name: Unit Tests
         run: echo "Simulating unit tests... Test execution completed successfully!"
 
@@ -151,27 +169,20 @@ jobs:
           docker push $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:test
 
   # Step 2: Test Job (Integration Tests)
-  # Run automated tests against the containerized application to ensure it behaves as expected.
   Test:
     runs-on: ubuntu-latest
-
-    # Ensure the Test job only runs if Build pass
     needs: Build
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Validate the interactions between different parts of the application
       - name: Integration Tests
         run: echo "Simulating integration tests... Test execution completed successfully!"
 
   # Step 3: Release Job (Release Docker Image)
-  # Package the tested container images with version tags and push them to a container registry.
   Release:
     runs-on: ubuntu-latest
-
-    # Ensure the Release job only runs if Test pass
     needs: Test
 
     steps:
@@ -193,12 +204,9 @@ jobs:
           docker tag $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:test $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:latest
           docker push $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:latest
 
-  # Step 3: Deploy Job
-  # Deploy the container image to a container orchestrator, such as K8s.
+  # Step 4: Deploy Job
   Deploy:
     runs-on: ubuntu-latest
-
-    # Ensure the Deploy job only runs if the Release is successful
     needs: Release
 
     steps:
@@ -212,8 +220,11 @@ jobs:
         run: |
           echo "$KUBE_CONFIG_DATA" | base64 -d > kubeconfig
           export KUBECONFIG=kubeconfig
-          kubectl set image deployment/$DEPLOYMENT_NAME $CONTAINER_NAME=$DOCKER_USERNAME/$ -o wide
+          kubectl set image deployment/$DEPLOYMENT_NAME $CONTAINER_NAME=$DOCKER_USERNAME/$DOCKER_IMAGE_NAME:latest
+          kubectl rollout restart deployment/$DEPLOYMENT_NAME
+          kubectl rollout status deployment/$DEPLOYMENT_NAME
 ```
+
 
 
 
@@ -291,7 +302,9 @@ jobs:
          - Other libraries aligned with these changes to maintain compatibility across the dependency tree.
        - **Reasoning:** Prevents future incompatibilities caused by upstream updates, ensuring the application remains stable during dependency upgrades.
 
-  - **Outcome:** The issue persists despite multiple dependency adjustments, rebuilds, and redeployments. 
+  - **Outcome:** The issue persists despite multiple dependency adjustments, rebuilds, and redeployments. Further investigation is needed.
+
+
 ### Makeline-Service Not Functioning
 
 - **Description:** The `makeline-service` is not processing orders from the queue even though both `virtual-customer` and `virtual-worker` are running. No information was being saved into MongoDB.
