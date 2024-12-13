@@ -124,7 +124,7 @@ The platform is built with a polyglot microservices architecture, where differen
 
 4. **Deploy to Kubernetes:**
    - Create a Kubernetes cluster on Azure, and apply all deployment files.  
- - 
+
      ```bash
       kubectl apply -f config-maps.yaml
       kubectl apply -f secrets.yaml
