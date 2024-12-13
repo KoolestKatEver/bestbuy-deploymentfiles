@@ -23,7 +23,7 @@ The platform is built with a polyglot microservices architecture, where differen
 
 ### Diagram
 
-![Architecture Diagram](ArchitectureDiagram.drawio.png)
+![Architecture Diagram](Diagram.drawio.png)
 
 ### Services
 
