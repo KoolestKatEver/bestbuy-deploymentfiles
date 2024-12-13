@@ -55,15 +55,74 @@ The platform is built with a polyglot microservices architecture, where differen
    git clone https://github.com/KoolestKatEver/virtual-customer-L8.git
    git clone https://github.com/KoolestKatEver/virtual-worker-L8.git
    ```
+2. **Set Up the AI Backing Services**
 
-2. **Build Docker Images:**
+   To enable AI-generated product descriptions and image generation features, you will deploy the required Azure OpenAI Services for GPT-4 (text generation) and DALL-E 3 (image generation). This step is essential to configure the AI Service component in the BestBuyStore application.
+
+   **Part 1: Create an Azure OpenAI Service Instance**
+
+   - Navigate to Azure Portal:
+     - Go to the Azure Portal.
+   - Create a Resource:
+     - Select Create a Resource from the Azure portal dashboard.
+     - Search for Azure OpenAI in the marketplace.
+   - Set Up the Azure OpenAI Resource:
+     - Choose the East US region for deployment to ensure capacity for GPT-4 and DALL-E 3 models.
+     - Fill in the required details:
+       - Resource group: Use an existing one or create a new group.
+       - Pricing tier: Select Standard.
+   - Deploy the Resource:
+     - Click Review + Create and then Create to deploy the Azure OpenAI service.
+
+   **Part 2: Deploy the GPT-4 and DALL-E 3 Models**
+
+   - Access the Azure OpenAI Resource:
+     - Navigate to the Azure OpenAI resource you just created.
+   - Deploy GPT-4:
+     - Go to the Model Deployments section and click Add Deployment.
+     - Choose GPT-4 as the model and provide a deployment name (e.g., gpt-4-deployment).
+     - Set the deployment configuration as required and deploy the model.
+   - Deploy DALL-E 3:
+     - Repeat the same process to deploy DALL-E 3.
+     - Use a descriptive deployment name (e.g., dalle-3-deployment).
+   - Note Configuration Details:
+     - Once deployed, note down the following details for each model:
+       - Deployment Name
+       - Endpoint URL
+
+   **Part 3: Retrieve and Configure API Keys**
+
+   - Get API Keys:
+     - Go to the Keys and Endpoints section of your Azure OpenAI resource.
+     - Copy the API Key (API key 1) and Endpoint URL.
+   - Base64 Encode the API Key:
+     - Use the following command to Base64 encode your API key:
+       ```bash
+       echo -n "<your-api-key>" | base64
+       ```
+       Replace `<your-api-key>` with your actual API key.
+
+   **Task 4: Update AI Service Deployment Configuration in the Deployment Files folder**
+
+   - Modify Secrets YAML:
+     - Edit the `secrets.yaml` file.
+     - Replace `OPENAI_API_KEY` placeholder with the Base64-encoded value of the `API_KEY`.
+   - Modify Deployment YAML:
+     - Edit the `aps-all-in-one.yaml` file.
+     - Replace the placeholders with the configurations you retrieved:
+       - `AZURE_OPENAI_DEPLOYMENT_NAME`: Enter the deployment name for GPT-4.
+       - `AZURE_OPENAI_ENDPOINT`: Enter the endpoint URL for the GPT-4 deployment.
+       - `AZURE_OPENAI_DALLE_ENDPOINT`: Enter the endpoint URL for the DALL-E 3 deployment.
+       - `AZURE_OPENAI_DALLE_DEPLOYMENT_NAME`: Enter the deployment name for DALL-E 3.
+
+3. **Build Docker Images:**
    Build and tag all the Docker images for each service:
    ```bash
    docker build -t <dockerhub-username>/<service-name>:latest .
    docker push <dockerhub-username>/<service-name>:latest
    ```
 
-3. **Deploy to Kubernetes:**
+4. **Deploy to Kubernetes:**
    - Create a Kubernetes cluster on Azure, and apply all deployment files.  
  - 
      ```bash
@@ -73,13 +132,13 @@ The platform is built with a polyglot microservices architecture, where differen
       kubectl apply -f admin-tasks.yaml
      ```
 
-4. **Verify Deployment:**
+5. **Verify Deployment:**
    Check the status of all pods:
    ```bash
    kubectl get pods
    ```
 
-5. **Access the Application:**
+6. **Access the Application:**
    - Access `store-front` via the assigned external IP in the kubernetes cluster.
    - Access `store-admin` similarly.
 
